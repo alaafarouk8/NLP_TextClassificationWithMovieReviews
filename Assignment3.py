@@ -17,6 +17,8 @@ from sklearn.metrics import  accuracy_score
 import gensim
 from sklearn import svm
 from gensim.models import Word2Vec
+from sklearn.neural_network import MLPClassifier
+
 ######################################################################################
 # Init the Wordnet Lemmatizer
 lemmatizer = WordNetLemmatizer()
@@ -86,7 +88,7 @@ def gettest_array(xtest):
     return test_array
 trainArr = gettrain_array(xtrain)  
 textArr = gettest_array(xtest) 
-classifier = svm.SVC(C=1.0, kernel='rbf', degree=3, shrinking=True, probability=False,tol=0.001, cache_size=200, class_weight=None, verbose=False, max_iter=-1, random_state=None)
+classifier = MLPClassifier(solver='lbfgs', alpha=1e-5,hidden_layer_sizes=(5, 2), random_state=1)
 classifier.fit(trainArr, ytrain) 
 yPredications = classifier.predict(textArr)
 print("Accuracy: %" , accuracy_score(ytest, yPredications)*100)
