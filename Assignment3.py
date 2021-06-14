@@ -14,7 +14,6 @@ from nltk.stem import WordNetLemmatizer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import  accuracy_score
-import random
 import gensim
 from gensim.models import Word2Vec
 ######################################################################################
@@ -64,23 +63,52 @@ def Splitingthedata(x,y):
     random_portion = round(np.random.rand(),3)
     Xtrain, Xtest, Ytrain, Ytest = train_test_split(x, y, test_size=random_portion, random_state=0)
     return Xtrain, Xtest, Ytrain, Ytest
-
+#######################################################################################
+#calling functions
 x,y = LoadFiles()
 files_=Preparedata(x)
 xtrain , xtest , ytrain , ytest = Splitingthedata(files_,y)
 model =gensim.models.Word2Vec(files_, min_count=2,sample=sample)
 train_array=[]
 test_array=[]
-for i in xtrain:
-    vec = get_mean_vector(model, i)
-    if len(vec) > 0:
-        train_array.append(vec)
-        
-for i in xtest:
-    vec = get_mean_vector(model, i)
-    if len(vec) > 0:
-        test_array.append(vec)
+def gettrain_array(xtrain):
+    for i in xtrain:
+        vec = get_mean_vector(model, i)
+        if len(vec) > 0:
+            train_array.append(vec)
+    return train_array
+def gettest_array(xtest):       
+    for i in xtest:
+        vec = get_mean_vector(model, i)
+        if len(vec) > 0:
+            test_array.append(vec)
+    return test_array
+trainArr = gettrain_array(xtrain)  
+textArr = gettest_array(xtest) 
 classifier = LogisticRegression()
-classifier.fit(train_array, ytrain) 
-yPredications = classifier.predict(test_array)
+classifier.fit(trainArr, ytrain) 
+yPredications = classifier.predict(textArr)
 print("Accuracy: %" , accuracy_score(ytest, yPredications)*100)
+"""
+f = input("enter review: ")
+z=Preparedata(f)
+o = gettest_array(z)
+output = classifier.predict(o)
+#####################################################################################
+#count function 
+def cnt(y_pred2):
+    cntNeg = 0 
+    cntPos = 0
+    for i in range(len(y_pred2)):
+        if (y_pred2[i]==0):
+            cntNeg=cntNeg+1 
+        else:
+            cntPos=cntPos+1
+    return cntNeg , cntPos 
+###################################################
+c1 , c2 = cnt(output)
+if(c1>c2):
+    print("negative")
+else:
+    print("positive")
+    """
