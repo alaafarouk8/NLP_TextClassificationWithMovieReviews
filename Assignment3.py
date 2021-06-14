@@ -15,6 +15,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import  accuracy_score
 import gensim
+from sklearn import svm
 from gensim.models import Word2Vec
 ######################################################################################
 # Init the Wordnet Lemmatizer
@@ -23,7 +24,7 @@ stemmer = WordNetLemmatizer()
 # Set values for various parameters
 feature_size = 10    # Word vector dimensionality  
 window_context = 10          # Context window size                                                                                    
-min_word_count = 1   # Minimum word count                        
+min_word_count = 3   # Minimum word count                        
 sample = 1e-3   # Downsample setting for frequent words
 files = []
 ######################################################################################
@@ -61,14 +62,14 @@ def get_mean_vector(word2vec_model, words):
 #divide the data set randomly
 def Splitingthedata(x,y):
     random_portion = round(np.random.rand(),3)
-    Xtrain, Xtest, Ytrain, Ytest = train_test_split(x, y, test_size=random_portion, random_state=0)
+    Xtrain, Xtest, Ytrain, Ytest = train_test_split(x, y, test_size=random_portion, random_state=4)
     return Xtrain, Xtest, Ytrain, Ytest
 #######################################################################################
 #calling functions
 x,y = LoadFiles()
 files_=Preparedata(x)
 xtrain , xtest , ytrain , ytest = Splitingthedata(files_,y)
-model =gensim.models.Word2Vec(files_, min_count=2,sample=sample)
+model =gensim.models.Word2Vec(files_, min_count=min_word_count,sample=sample)
 train_array=[]
 test_array=[]
 def gettrain_array(xtrain):
@@ -85,7 +86,7 @@ def gettest_array(xtest):
     return test_array
 trainArr = gettrain_array(xtrain)  
 textArr = gettest_array(xtest) 
-classifier = LogisticRegression()
+classifier = svm.SVC(C=1.0, kernel='rbf', degree=3, shrinking=True, probability=False,tol=0.001, cache_size=200, class_weight=None, verbose=False, max_iter=-1, random_state=None)
 classifier.fit(trainArr, ytrain) 
 yPredications = classifier.predict(textArr)
 print("Accuracy: %" , accuracy_score(ytest, yPredications)*100)
