@@ -10,15 +10,17 @@ import re
 import sklearn
 import numpy as np
 import numpy
+import nltk
+nltk.download('punkt')
+nltk.download('wordnet')
+nltk.download('stopwords')
 from nltk.stem import WordNetLemmatizer 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import  accuracy_score
 import gensim
 from sklearn import svm
-from gensim.models import Word2Vec
 from sklearn.neural_network import MLPClassifier
-
 ######################################################################################
 # Init the Wordnet Lemmatizer
 lemmatizer = WordNetLemmatizer()
@@ -48,7 +50,9 @@ def  Preparedata(X):
          file = file.split()
          file = [stemmer.lemmatize(word) for word in file]
          file = ' '.join(file)
-         files.append(file)
+         # tokenize the text into a list of words
+         tokens = nltk.tokenize.word_tokenize(file)
+         files.append(tokens)
     return files
 
 #######################################################################################
@@ -70,48 +74,40 @@ def Splitingthedata(x,y):
 #calling functions
 x,y = LoadFiles()
 files_=Preparedata(x)
+print('Total training sentences: %d' % len(files_))
 xtrain , xtest , ytrain , ytest = Splitingthedata(files_,y)
 model =gensim.models.Word2Vec(files_, min_count=min_word_count,sample=sample)
-train_array=[]
-test_array=[]
+# summarize vocabulary size in model
+words = list(model.wv.key_to_index)
+print('Vocabulary size: %d' % len(words))
 def gettrain_array(xtrain):
+    train_array=[]
     for i in xtrain:
         vec = get_mean_vector(model, i)
         if len(vec) > 0:
             train_array.append(vec)
     return train_array
-def gettest_array(xtest):       
+def gettest_array(xtest):  
+    test_array=[]     
     for i in xtest:
         vec = get_mean_vector(model, i)
         if len(vec) > 0:
             test_array.append(vec)
     return test_array
 trainArr = gettrain_array(xtrain)  
-textArr = gettest_array(xtest) 
+testArr = gettest_array(xtest) 
 classifier = MLPClassifier(solver='lbfgs', alpha=1e-5,hidden_layer_sizes=(5, 2), random_state=1)
 classifier.fit(trainArr, ytrain) 
-yPredications = classifier.predict(textArr)
+yPredications = classifier.predict(testArr)
 print("Accuracy: %" , accuracy_score(ytest, yPredications)*100)
-"""
+
 f = input("enter review: ")
-z=Preparedata(f)
-o = gettest_array(z)
-output = classifier.predict(o)
-#####################################################################################
-#count function 
-def cnt(y_pred2):
-    cntNeg = 0 
-    cntPos = 0
-    for i in range(len(y_pred2)):
-        if (y_pred2[i]==0):
-            cntNeg=cntNeg+1 
-        else:
-            cntPos=cntPos+1
-    return cntNeg , cntPos 
-###################################################
-c1 , c2 = cnt(output)
-if(c1>c2):
-    print("negative")
+
+o = gettest_array([f])
+output = classifier.predict(o)[0]
+if (output ==1):
+    print("positive review")
 else:
-    print("positive")
-    """
+    print("negative review")
+#####################################################################################
+
