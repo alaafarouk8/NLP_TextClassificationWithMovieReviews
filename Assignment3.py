@@ -7,20 +7,14 @@ Created on Sun Jun 13 21:58:09 2021
 # path C:\Users\ALAA\OneDrive\Documents\GitHub\NLP_TextClassificationWithMovieReviews\dataset
 #import libraries
 import re
-import nltk
 import sklearn
 import numpy as np
 import numpy
-import pandas as pd
-from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer 
-from nltk.stem import WordNetLemmatizer 
-from sklearn.metrics import plot_roc_curve
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
-
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import  accuracy_score
+import random
 import gensim
 from gensim.models import Word2Vec
 ######################################################################################
@@ -65,9 +59,10 @@ def get_mean_vector(word2vec_model, words):
     else:
         return np.zeros(word2vec_model.vector_size)
 ######################################################################################
-# divide the data into 20% test set and 80% training set.
+#divide the data set randomly
 def Splitingthedata(x,y):
-    Xtrain, Xtest, Ytrain, Ytest = train_test_split(x, y, test_size=0.2, random_state=0)
+    random_portion = round(np.random.rand(),3)
+    Xtrain, Xtest, Ytrain, Ytest = train_test_split(x, y, test_size=random_portion, random_state=0)
     return Xtrain, Xtest, Ytrain, Ytest
 
 x,y = LoadFiles()
@@ -85,3 +80,7 @@ for i in xtest:
     vec = get_mean_vector(model, i)
     if len(vec) > 0:
         test_array.append(vec)
+classifier = LogisticRegression()
+classifier.fit(train_array, ytrain) 
+yPredications = classifier.predict(test_array)
+print("Accuracy: %" , accuracy_score(ytest, yPredications)*100)
