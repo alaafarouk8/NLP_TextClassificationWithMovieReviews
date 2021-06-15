@@ -59,7 +59,7 @@ def  Preparedata(X):
 #Averaging Words Vectors to Create Sentence Embedding
 def get_mean_vector(word2vec_model, words):
     vocabulary = word2vec_model.wv.key_to_index
-    words = [(word) for word in words if word in vocabulary]
+    words = [word for word in words if word in vocabulary]
     if len(words) >= 1:
         return np.mean(word2vec_model.wv[words], axis=0)
     else:
@@ -83,20 +83,21 @@ print('Vocabulary size: %d' % len(words))
 def gettrain_array(xtrain):
     train_array=[]
     for i in xtrain:
-        vec = get_mean_vector(model, i)
+        vec = get_mean_vector(model,i)
         if len(vec) > 0:
             train_array.append(vec)
     return train_array
 def gettest_array(xtest):  
     test_array=[]     
     for i in xtest:
-        vec = get_mean_vector(model, i)
+        vec = get_mean_vector(model,i)
         if len(vec) > 0:
             test_array.append(vec)
     return test_array
 trainArr = gettrain_array(xtrain)  
 testArr = gettest_array(xtest) 
-classifier = MLPClassifier(solver='lbfgs', alpha=1e-5,hidden_layer_sizes=(5, 2), random_state=1)
+classifier =svm.SVC(C=1.0, kernel='rbf', degree=3, shrinking=True, probability=False,tol=0.001, cache_size=200, class_weight=None, verbose=False, max_iter=-1, random_state=None)
+classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 classifier.fit(trainArr, ytrain) 
 yPredications = classifier.predict(testArr)
 print("Accuracy: %" , accuracy_score(ytest, yPredications)*100)
