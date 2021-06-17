@@ -27,7 +27,7 @@ lemmatizer = WordNetLemmatizer()
 stemmer = WordNetLemmatizer()
 # Set values for various parameters
 feature_size = 10    # Word vector dimensionality  
-window_context = 10          # Context window size                                                                                    
+window_context = 15         # Context window size                                                                                    
 min_word_count = 3   # Minimum word count                        
 sample = 1e-3   # Downsample setting for frequent words
 files = []
@@ -45,7 +45,6 @@ def  Preparedata(X):
          file = re.sub(r'\s+[a-zA-Z]\s+', ' ', file)
          file = re.sub(r'\^[a-zA-Z]\s+', ' ', file) 
          file = re.sub(r'\s+', ' ', file, flags=re.I)
-         file = re.sub(r'^b\s+', '', file)
          file = file.lower()
          file = file.split()
          file = [stemmer.lemmatize(word) for word in file]
@@ -74,12 +73,12 @@ def Splitingthedata(x,y):
 #calling functions
 x,y = LoadFiles()
 files_=Preparedata(x)
-print('Total training sentences: %d' % len(files_))
+#print('Total training sentences: %d' % len(files_))
 xtrain , xtest , ytrain , ytest = Splitingthedata(files_,y)
-model =gensim.models.Word2Vec(files_, min_count=min_word_count,sample=sample)
+model =gensim.models.Word2Vec(files_, vector_size=200,min_count=min_word_count,sample=sample , epochs=500)
 # summarize vocabulary size in model
 words = list(model.wv.key_to_index)
-print('Vocabulary size: %d' % len(words))
+#print('Vocabulary size: %d' % len(words))
 def gettrain_array(xtrain):
     train_array=[]
     for i in xtrain:
@@ -96,12 +95,13 @@ def gettest_array(xtest):
     return test_array
 trainArr = gettrain_array(xtrain)  
 testArr = gettest_array(xtest) 
-classifier =svm.SVC(C=1.0, kernel='rbf', degree=3, shrinking=True, probability=False,tol=0.001, cache_size=200, class_weight=None, verbose=False, max_iter=-1, random_state=None)
-classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+classifier=LogisticRegression()
+#classifier = MLPClassifier(solver='lbfgs', alpha=1e-5,hidden_layer_sizes=(5, 2), random_state=1)
+#classifier =svm.SVC(C=1.0, kernel='rbf', degree=3, shrinking=True, probability=False,tol=0.001, cache_size=200, class_weight=None, verbose=False, max_iter=-1, random_state=None)
 classifier.fit(trainArr, ytrain) 
 yPredications = classifier.predict(testArr)
 print("Accuracy: %" , accuracy_score(ytest, yPredications)*100)
-
+"""
 f = input("enter review: ")
 
 o = gettest_array([f])
@@ -110,5 +110,6 @@ if (output ==1):
     print("positive review")
 else:
     print("negative review")
+"""
 #####################################################################################
 
